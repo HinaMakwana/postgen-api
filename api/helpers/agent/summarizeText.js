@@ -1,7 +1,7 @@
-const { openai, CONTENT_TYPES } = require('../../../config/constants');
-const { constructChatGPTMessages } = require('../../utils/chatgpt/chatgpt');
-const { chatgptTexttoText } = require('../model/chatgptTextToText');
-const { groqTextToText } = require('../model/groqTextToText');
+const { openai, CONTENT_TYPES } = require("../../../config/constants");
+const { constructChatGPTMessages } = require("../../utils/chatgpt/chatgpt");
+const { chatgptTexttoText } = require("../model/chatgptTextToText");
+const { groqTextToText } = require("../model/groqTextToText");
 
 const systemPrompt = `You are an expert social media marketer and creative content writer. I will give you news article content, targeted social media, content type, tone of the post and any other preferences. You need to write a social media post using the given information. 
 
@@ -19,36 +19,37 @@ Return the response in following JSON structure only.
  "meme": "...",
  "meme_caption": "..."
 }`;
-async function summarizeText(prompt, newsData) {
-	try {
-		let userPrompt = `tone: ${prompt.tone}
-    platform: ${prompt.platform || 'post'}
-    content type: ${prompt.contentType || 'text'}
+async function summarizeText(prompt, newsData, allPreviousMessage = []) {
+  try {
+    let userPrompt = `tone: ${prompt.tone}
+    platform: ${prompt.platform || "post"}
+    content type: ${prompt.contentType || "text"}
     content: ${newsData[0]?.content}
     `;
-		let messages = [
-			{
-				role: 'system',
-				content: systemPrompt,
-			},
-			{ role: 'user', content: `${userPrompt}` },
-		];
-		// if (type === CONTENT_TYPES.TEXT) {
-		// 	messages = constructChatGPTMessages({
-		// 		userPrompt: prompt,
-		// 		articles: articles,
-		// 		...rest,
-		// 	});
-		// }
+    let messages = [
+      {
+        role: "system",
+        content: systemPrompt,
+      },
+      ...allPreviousMessage,
+      { role: "user", content: `${userPrompt}` },
+    ];
+    // if (type === CONTENT_TYPES.TEXT) {
+    // 	messages = constructChatGPTMessages({
+    // 		userPrompt: prompt,
+    // 		articles: articles,
+    // 		...rest,
+    // 	});
+    // }
 
-		const response = await groqTextToText(messages);
-		// console.log('response: grok ', response);
+    const response = await groqTextToText(messages);
+    // console.log('response: grok ', response);
 
-		return response;
-	} catch (error) {
-		console.error('Error generating keywords:', error);
-		return null;
-	}
+    return response;
+  } catch (error) {
+    console.error("Error generating keywords:", error);
+    return null;
+  }
 }
 
 module.exports = { summarizeText };

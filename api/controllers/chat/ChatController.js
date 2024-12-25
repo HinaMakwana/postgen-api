@@ -260,14 +260,13 @@ module.exports = {
       let session = await getByIdSession(sessionId);
       let getLastUserMessage;
       if (!session) {
-        
         const title = await groqTextToText([
           {
-            role: 'system',
+            role: "system",
             content: `Create a short title from user prompt`,
           },
-          { role: 'user', content: `${prompt}` },
-        ])
+          { role: "user", content: `${prompt}` },
+        ]);
         session = await createSession({
           id: sessionId,
           prompt,
@@ -284,14 +283,14 @@ module.exports = {
             // type: CONTENT_TYPES.TEXT,
           },
           order: [["createdAt", "DESC"]],
-          limit: 2, // Adds a limit of 5
+          // limit: 2, // Adds a limit of 5
         });
         // getLastUserMessage = lastMessage.message;
         sendedMessage = [...lastMessage];
         allPreviousMessage = lastMessage.map((f) => ({
-          role: f.role,
-          message: f.message,
-          type: f.type,
+          role: f.role === "ai" ? "assistant" : f.role,
+          content: f.message,
+          // type: f.type,
           // metadata: f?.metadata,
         }));
       }
@@ -306,16 +305,21 @@ module.exports = {
       });
       sendedMessage.push(msg);
 
-      allPreviousMessage.push({
-        role: msg.role,
-        message: msg.message,
-        type: msg.type,
-      });
+      // allPreviousMessage.push({
+      //   role: msg.role,
+      //   message: msg.message,
+      //   type: msg.type,
+      // });
 
-      const newPrompt = `${postType} + ${prompt} + platform ${platform} + tone ${tone} `
+      const newPrompt = `${postType} + ${prompt} + platform ${platform} + tone ${tone} `;
 
       // Get the user intent
-      const intent = await detectUserIntent(newPrompt, MODAL_TYPE.GROQ);
+      const intent = await detectUserIntent({
+        query: newPrompt,
+        type: MODAL_TYPE.GROQ,
+        allPreviousMessage: allPreviousMessage || [],
+      });
+
       let allNews = [];
 
       // Generate the post
@@ -323,12 +327,19 @@ module.exports = {
         case "generate_post": {
           // Generate a new post
           // Step 1 - Analyse the keywords
-          const keywords = await generateKeywords(newPrompt, MODAL_TYPE.GROQ);
+          const keywords = await generateKeywords(
+            newPrompt,
+            MODAL_TYPE.GROQ,
+            allPreviousMessage
+          );
 
           // Step 2 - Crawl new based on keywords and summarize the content
           let post = null;
           try {
-            const { postSummery, news } = await generatePost(keywords);
+            const { postSummery, news } = await generatePost({
+              keywords,
+              allPreviousMessage: allPreviousMessage || [],
+            });
             post = postSummery;
 
             if (news.length) {
@@ -362,15 +373,20 @@ module.exports = {
           // Refine the post
           // Generate a new post
           // Step 1 - Analyse the keywords
-          const keywords = await generateKeywords(newPrompt, MODAL_TYPE.GROQ);
+          const keywords = await generateKeywords(
+            newPrompt,
+            MODAL_TYPE.GROQ,
+            allPreviousMessage
+          );
 
           let post = null;
           try {
-            const { postSummery, news } = await generatePost(
+            const { postSummery, news } = await generatePost({
               keywords,
               allNews,
-              true
-            );
+              isRefine: true,
+              allPreviousMessage: allPreviousMessage || [],
+            });
             post = postSummery;
 
             if (news.length) {
@@ -401,16 +417,20 @@ module.exports = {
         }
         case "generate_image": {
           const imageDecription = await groqTextToText([
+            ...allPreviousMessage,
             {
-              role: 'system',
+              role: "system",
               content: `Create a post content based on provided platfrom , tone and prompt.`,
             },
-            { role: 'user', content: JSON.stringify({
-              prompt,
-              platform,
-              tone
-            }) },
-          ])
+            {
+              role: "user",
+              content: JSON.stringify({
+                prompt,
+                platform,
+                tone,
+              }),
+            },
+          ]);
           let testMsg = await createMessage({
             type: CONTENT_TYPES.TEXT,
             message: imageDecription,
@@ -440,16 +460,20 @@ module.exports = {
         }
         case "generate_video": {
           const videoPostDecription = await groqTextToText([
+            ...allPreviousMessage,
             {
-              role: 'system',
+              role: "system",
               content: `Create a post content based on provided platfrom , tone and prompt.`,
             },
-            { role: 'user', content: JSON.stringify({
-              prompt,
-              platform,
-              tone
-            }) },
-          ])
+            {
+              role: "user",
+              content: JSON.stringify({
+                prompt,
+                platform,
+                tone,
+              }),
+            },
+          ]);
           let testMsg = await createMessage({
             type: CONTENT_TYPES.TEXT,
             message: videoPostDecription,
