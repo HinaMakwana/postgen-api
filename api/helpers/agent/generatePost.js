@@ -4,7 +4,12 @@ const { groqTextToText } = require("../model/groqTextToText");
 const { getNews } = require("../../helpers/news/getNewsHelper");
 const { summarizeText } = require("./summarizeText");
 
-async function generatePost(keywords, allNews = [], isRefine = false) {
+async function generatePost({
+  keywords,
+  allNews = [],
+  isRefine = false,
+  allPreviousMessage = [],
+}) {
   try {
     let response;
     if (typeof keywords === "string") {
@@ -19,17 +24,16 @@ async function generatePost(keywords, allNews = [], isRefine = false) {
 
     let newsData = [];
 
-	if(isRefine) {
-		newsData = allNews
-	} else {
-		if (keywords?.news) {
-			newsData = await getNews({
-			  search: searchQuery,
-			  engine: keywords.searchEngine,
-			});
-		  }
-	}
-    
+    if (isRefine) {
+      newsData = allNews;
+    } else {
+      if (keywords?.news) {
+        newsData = await getNews({
+          search: searchQuery,
+          engine: keywords.searchEngine,
+        });
+      }
+    }
 
     // console.log('newsData: ', newsData);
 
@@ -40,7 +44,11 @@ async function generatePost(keywords, allNews = [], isRefine = false) {
     // 	response = await chatgptTexttoText(messageData);
     // }
     // summarize the news
-    let textSummary = await summarizeText(keywords, newsData);
+    let textSummary = await summarizeText(
+      keywords,
+      newsData,
+      allPreviousMessage || []
+    );
 
     // const summarizeNews = await articlesSummarizer({
     // 	prompt,
@@ -57,7 +65,7 @@ async function generatePost(keywords, allNews = [], isRefine = false) {
 
     // check if meme generation is required
 
-    return { postSummery:  textSummary, news: newsData};
+    return { postSummery: textSummary, news: newsData };
   } catch (error) {
     console.error("Error generating keywords:", error.message);
     return null;
