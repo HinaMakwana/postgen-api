@@ -1,6 +1,7 @@
 // Import the Session model
-const {UUID }  = require("../../../config/constants");// Import UUID generator
+const { UUID } = require("../../../config/constants"); // Import UUID generator
 const { Session } = require("../../models");
+const { catchError } = require("../../utils/catchError");
 /**
  * Helper function to create a new session
  * @param {Object} sessionData - Data for creating the session
@@ -11,8 +12,15 @@ const { Session } = require("../../models");
  * @param {string} sessionData.updatedBy - ID of the updater
  * @returns {Object} - The created session object
  */
-async function createSession({ id, prompt, userId, createdBy, updatedBy, name, ...rest }) {
-
+async function createSession({
+  id,
+  prompt,
+  userId,
+  createdBy,
+  updatedBy,
+  name,
+  ...rest
+}) {
   const first200Chars = name.substring(0, 200);
   try {
     const newSession = await Session.create({
@@ -24,13 +32,14 @@ async function createSession({ id, prompt, userId, createdBy, updatedBy, name, .
       updatedBy,
       updatedAt: Math.floor(Date.now() / 1000),
       first200Chars,
-      ...rest
+      ...rest,
     });
 
     return newSession;
   } catch (error) {
-    console.error('Error creating session:', error);
-    return ;
+    console.error("Error creating session:", error);
+    await catchError(error);
+    return;
   }
 }
 

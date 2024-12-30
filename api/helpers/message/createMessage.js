@@ -1,6 +1,7 @@
 // Import the Message model and UUID generator
-const Message = require('../../models/Message');
-const { UUID } = require('../../../config/constants'); // Import UUID generator if needed
+const Message = require("../../models/Message");
+const { UUID } = require("../../../config/constants"); // Import UUID generator if needed
+const { catchError } = require("../../utils/catchError");
 
 /**
  * Helper to create a new message
@@ -13,9 +14,16 @@ const { UUID } = require('../../../config/constants'); // Import UUID generator 
  * @param {string} messageData.userId - Associated user ID
  * @returns {Object} - The created message object
  */
-async function createMessage({  type, message, metadata = {}, id, userId , role,sessionId, messageNews = null }) {
-
-  
+async function createMessage({
+  type,
+  message,
+  metadata = {},
+  id,
+  userId,
+  role,
+  sessionId,
+  messageNews = null,
+}) {
   try {
     const newMessage = await Message.create({
       id: UUID(), // Generate a unique ID for the message
@@ -26,14 +34,14 @@ async function createMessage({  type, message, metadata = {}, id, userId , role,
       userId,
       role,
       sessionId,
-      messageNews
+      messageNews,
     });
 
-   
     return newMessage;
   } catch (error) {
-    console.error('Error creating message:', error.message);
-    throw new Error('Unable to create message');
+    console.error("Error creating message:", error.message);
+    await catchError(error);
+    throw new Error("Unable to create message");
   }
 }
 

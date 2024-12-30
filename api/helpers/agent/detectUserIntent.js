@@ -1,4 +1,5 @@
 const { openai, MODAL_TYPE } = require("../../../config/constants");
+const { catchError } = require("../../utils/catchError");
 const { chatgptTexttoText } = require("../model/chatgptTextToText");
 const { groqTextToText } = require("../model/groqTextToText");
 const systemPrompt = `You are a helpful assistant. You are coordinating a conversational session to help user generate a social media post. You are given a certain functions to choose depending on the user intent. Your job is to understand user's intern and suggest a suitable function. 
@@ -41,6 +42,7 @@ async function detectUserIntent({
 
     return response;
   } catch (error) {
+    await catchError(error);
     console.error("Error detecting the intent:", error.message);
     return null;
   }

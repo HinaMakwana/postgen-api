@@ -29,6 +29,7 @@ const {
   generateAllSummaryMessage,
 } = require("../../helpers/agent/generateAllSummaryMessage");
 const { groqTextToText } = require("../../helpers/model/groqTextToText");
+const { catchError } = require("../../utils/catchError");
 
 module.exports = {
   /**
@@ -346,7 +347,9 @@ module.exports = {
               await updateSession(sessionId, { news });
               allNews = news;
             }
-          } catch (error) {}
+          } catch (error) {
+            await catchError(error);
+          }
 
           // if crawl news have no post in response return error
           if (!post?.post_content) {
@@ -393,7 +396,9 @@ module.exports = {
               await updateSession(sessionId, { news });
               allNews = news;
             }
-          } catch (error) {}
+          } catch (error) {
+            await catchError(error);
+          }
 
           if (!post?.post_content) {
             return res.status(HTTP_STATUS_CODE.BAD_REQUEST).json({
@@ -534,6 +539,7 @@ module.exports = {
       });
     } catch (error) {
       console.log("error: ", error);
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,

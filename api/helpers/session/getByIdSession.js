@@ -1,4 +1,5 @@
 const { sequelize } = require("../../models");
+const { catchError } = require("../../utils/catchError");
 
 const getByIdSession = async (id) => {
   try {
@@ -55,6 +56,7 @@ GROUP BY
     return session?.[0]?.[0];
   } catch (error) {
     console.log("error: ", error);
+    await catchError(error);
     //return error response
     return;
   }

@@ -1,5 +1,6 @@
 const { UUID, HTTP_STATUS_CODE } = require("../../../config/constants");
 const { Message } = require("../../models");
+const { catchError } = require("../../utils/catchError");
 
 module.exports = {
   /**
@@ -36,6 +37,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,

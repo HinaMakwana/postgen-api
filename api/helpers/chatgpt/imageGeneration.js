@@ -1,6 +1,7 @@
 // gptHelper.js
 
 const { openai } = require("../../../config/constants");
+const { catchError } = require("../../utils/catchError");
 const { chatgptTexttoText } = require("../model/chatgptTextToText");
 const { groqTextToText } = require("../model/groqTextToText");
 
@@ -17,13 +18,12 @@ async function imageGeneration({ prompt, size = "1024x1024", type = "" }) {
       newPrompt = await improveImagePrompt(prompt);
     }
 
-
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: newPrompt,
       n: 1, // Number of images to generate
       size: size, // Image dimensions: 256x256, 512x512, 1024x1024
-      quality: "hd"
+      quality: "hd",
     });
 
     const imageUrl = response.data[0].url;
@@ -34,6 +34,7 @@ async function imageGeneration({ prompt, size = "1024x1024", type = "" }) {
       "Error generating image:",
       error.response?.data || error.message
     );
+    await catchError(error);
   }
 }
 
@@ -53,8 +54,8 @@ async function improveImagePrompt(prompt) {
 
     return response;
   } catch (error) {
-    console.log('error: ', error);
-
+    console.log("error: ", error);
+    await catchError(error);
   }
 }
 
@@ -74,8 +75,8 @@ async function improveMemeImagePrompt(prompt) {
 
     return response;
   } catch (error) {
-    console.log('error: ', error);
-
+    console.log("error: ", error);
+    await catchError(error);
   }
 }
 
@@ -83,5 +84,5 @@ module.exports = {
   imageGeneration,
   improveImagePrompt,
   improveMemeImagePrompt,
-  IMAGE_GENERATION_TYPE
+  IMAGE_GENERATION_TYPE,
 };
