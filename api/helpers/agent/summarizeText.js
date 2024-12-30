@@ -3,7 +3,7 @@ const { constructChatGPTMessages } = require("../../utils/chatgpt/chatgpt");
 const { chatgptTexttoText } = require("../model/chatgptTextToText");
 const { groqTextToText } = require("../model/groqTextToText");
 
-const systemPrompt = `You are an expert social media marketer and creative content writer. I will give you news article content, targeted social media, content type, tone of the post and any other preferences. You need to write a social media post using the given information. 
+const systemPrompt = `You are an expert social media marketer and creative content writer. I will give you news article content and its title and source url,user prompt keyword, targeted social media, content type, tone of the post and any other preferences. You need to write a social media post using the given information. If you get the content as error or irrelevant you can crawl to given url and read content and generate post with that information and that information should match with user prompt keyword. and do not return source link in the content.
 
 If the content type includes image, you should write a suitable prompt for image generation using Dall-E. 
 If the content type includes video,you should write a suitable prompt for video generation using Runway. 
@@ -24,7 +24,10 @@ async function summarizeText(prompt, newsData, allPreviousMessage = []) {
     let userPrompt = `tone: ${prompt.tone}
     platform: ${prompt.platform || "post"}
     content type: ${prompt.contentType || "text"}
-    content: ${newsData[0]?.content}
+    news article title: ${newsData[0]?.title}
+    news article content: ${newsData[0]?.content}
+    news source url: ${newsData[0]?.url}
+    user prompt keywords: ${prompt.news || ""}
     `;
     let messages = [
       {

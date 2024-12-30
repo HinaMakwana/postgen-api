@@ -282,7 +282,7 @@ module.exports = {
             // role: MESSAGE_ROLE_TYPES.USER,
             // type: CONTENT_TYPES.TEXT,
           },
-          order: [["createdAt", "DESC"]],
+          order: [["createdAt", "ASC"]],
           // limit: 2, // Adds a limit of 5
         });
         // getLastUserMessage = lastMessage.message;
