@@ -1,5 +1,6 @@
 // Import the Message model
-const Message = require('../../models/Message');
+const Message = require("../../models/Message");
+const { catchError } = require("../../utils/catchError");
 
 /**
  * Helper to update an existing message
@@ -20,13 +21,14 @@ async function updateMessage(id, updateData) {
     });
 
     if (updatedRows === 0) {
-      throw new Error('Message not found or no changes made');
+      throw new Error("Message not found or no changes made");
     }
 
     return updatedMessage;
   } catch (error) {
-    console.error('Error updating message:', error.message);
-    throw new Error('Unable to update message');
+    console.error("Error updating message:", error.message);
+    await catchError(error);
+    throw new Error("Unable to update message");
   }
 }
 

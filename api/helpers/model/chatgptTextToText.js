@@ -1,18 +1,19 @@
 const { openai, MODAL_TYPE } = require("../../../config/constants");
+const { catchError } = require("../../utils/catchError");
 
-async function chatgptTexttoText(messageData){
-    let response = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // You can also use 'gpt-4-turbo'
-        messages: messageData,
-        
-      });
-        // Extracting and returning keywords
-    let keywords = response.choices[0].message.content.trim();
-    try {
-      keywords = JSON.parse(keywords);
-    } catch (error) {
-      keywords = keywords;
-    }
-    return keywords
+async function chatgptTexttoText(messageData) {
+  let response = await openai.chat.completions.create({
+    model: "gpt-4o-mini", // You can also use 'gpt-4-turbo'
+    messages: messageData,
+  });
+  // Extracting and returning keywords
+  let keywords = response.choices[0].message.content.trim();
+  try {
+    keywords = JSON.parse(keywords);
+  } catch (error) {
+    await catchError(error);
+    keywords = keywords;
+  }
+  return keywords;
 }
-module.exports = {chatgptTexttoText}
+module.exports = { chatgptTexttoText };

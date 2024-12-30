@@ -3,6 +3,7 @@ const { chatgptTexttoText } = require("../model/chatgptTextToText");
 const { groqTextToText } = require("../model/groqTextToText");
 const { getNews } = require("../../helpers/news/getNewsHelper");
 const { summarizeText } = require("./summarizeText");
+const { catchError } = require("../../utils/catchError");
 
 async function generatePost({
   keywords,
@@ -68,6 +69,7 @@ async function generatePost({
     return { postSummery: textSummary, news: newsData };
   } catch (error) {
     console.error("Error generating keywords:", error.message);
+    await catchError(error);
     return null;
   }
 }

@@ -15,6 +15,7 @@ const { getNews } = require("../../helpers/news/getNewsHelper");
 const { createSession } = require("../../helpers/session/createSession");
 const { getByIdSession } = require("../../helpers/session/getByIdSession");
 const { Session, Message, sequelize } = require("../../models");
+const { catchError } = require("../../utils/catchError");
 
 module.exports = {
   /**
@@ -130,6 +131,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -161,6 +163,7 @@ module.exports = {
       });
     } catch (error) {
       console.log("error: ", error);
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -194,6 +197,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,

@@ -1,6 +1,7 @@
 // Import the Session model
 
 const { Session } = require("../../models");
+const { catchError } = require("../../utils/catchError");
 
 /**
  * Helper function to update an existing session
@@ -26,14 +27,14 @@ async function updateSession(id, updateData) {
       }
     });
 
-
     // Save the updated session
     await session.save();
 
     return session;
   } catch (error) {
-    console.error('Error updating session:', error.message);
-    throw new Error('Unable to update session');
+    console.error("Error updating session:", error.message);
+    await catchError(error);
+    throw new Error("Unable to update session");
   }
 }
 

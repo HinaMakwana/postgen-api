@@ -17,6 +17,7 @@ const {
   processMailMsgs,
 } = require("../../../helpers/mail/processMailMessages");
 const { User } = require("../../../models");
+const { catchError } = require("../../../utils/catchError");
 
 module.exports = {
   /**
@@ -130,6 +131,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -253,6 +255,7 @@ module.exports = {
       });
     } catch (error) {
       console.log("error: ", error);
+      await catchError(error);
       // Return error response if any exception occurs
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -373,6 +376,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -506,6 +510,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,
@@ -637,9 +642,9 @@ module.exports = {
   logout: async (req, res) => {
     try {
       // Extract token from headers
-      let token = req.headers['authorization'];
-      if (token && token.startsWith('Bearer ')) {
-        token = token.split(' ')[1];
+      let token = req.headers["authorization"];
+      if (token && token.startsWith("Bearer ")) {
+        token = token.split(" ")[1];
       }
       // Check if token exists
       if (!token) {
@@ -691,6 +696,7 @@ module.exports = {
         error: "",
       });
     } catch (error) {
+      await catchError(error);
       //return error response
       return res.status(HTTP_STATUS_CODE.SERVER_ERROR).json({
         status: HTTP_STATUS_CODE.SERVER_ERROR,

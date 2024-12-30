@@ -1,4 +1,5 @@
 const { openai, CONTENT_TYPES } = require("../../../config/constants");
+const { catchError } = require("../../utils/catchError");
 const { constructChatGPTMessages } = require("../../utils/chatgpt/chatgpt");
 const { chatgptTexttoText } = require("../model/chatgptTextToText");
 const { groqTextToText } = require("../model/groqTextToText");
@@ -51,6 +52,7 @@ async function summarizeText(prompt, newsData, allPreviousMessage = []) {
     return response;
   } catch (error) {
     console.error("Error generating keywords:", error);
+    await catchError(error);
     return null;
   }
 }

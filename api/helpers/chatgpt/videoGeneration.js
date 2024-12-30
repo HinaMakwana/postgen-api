@@ -8,18 +8,17 @@ const { randomUUID } = require("crypto");
 const path = require("path");
 const { groqTextToText } = require("../model/groqTextToText");
 const { chatgptTexttoText } = require("../model/chatgptTextToText");
+const { catchError } = require("../../utils/catchError");
 
 async function videoGeneration({ prompt }) {
   try {
-
-    const newPrompt = await improveVideoGenerationPrompt(prompt)
+    const newPrompt = await improveVideoGenerationPrompt(prompt);
     const inputPrompt = {
       // fps: 30,
       prompt: newPrompt,
       // num_frames: 163,
       // guidance_scale: 6,
       // num_inference_steps: 20
-     
     };
 
     // Call the Replicate API
@@ -52,6 +51,7 @@ async function videoGeneration({ prompt }) {
       "Error generating video:",
       error.response?.data || error.message
     );
+    await catchError(error);
     throw error; // Re-throw the error for further handling
   }
 }
@@ -63,9 +63,9 @@ Character Actions & Expressions: Exaggerated reactions or movements.
 Dialogues/Subtitles: Funny lines or voiceovers.
 Audio & Sound Effects: Background music and sound effects that enhance humor.
 Contextual Elements: Additional humorous details (e.g., crowd reactions, props).
-Keep it short, comedic, and playful in tone.`
+Keep it short, comedic, and playful in tone.`;
 
-async function improveVideoGenerationPrompt (prompt) {
+async function improveVideoGenerationPrompt(prompt) {
   try {
     const messages = [
       {
@@ -78,7 +78,9 @@ async function improveVideoGenerationPrompt (prompt) {
     const response = await groqTextToText(messages);
 
     return response;
-  } catch (error) {}
+  } catch (error) {
+    await catchError(error);
+  }
 }
 
 module.exports = { videoGeneration };

@@ -1,4 +1,5 @@
-const Message = require('../../models/Message'); // Adjust the path to your Message model
+const Message = require("../../models/Message"); // Adjust the path to your Message model
+const { catchError } = require("../../utils/catchError");
 
 /**
  * Helper to delete a message
@@ -11,7 +12,7 @@ async function deleteMessage(id) {
     const message = await Message.findByPk(id);
 
     if (!message) {
-      throw new Error('Message not found');
+      throw new Error("Message not found");
     }
 
     // Delete the message
@@ -19,8 +20,9 @@ async function deleteMessage(id) {
 
     return `Message with ID ${id} has been deleted successfully.`;
   } catch (error) {
-    console.error('Error deleting message:', error.message);
-    throw new Error('Unable to delete message');
+    console.error("Error deleting message:", error.message);
+    await catchError(error);
+    throw new Error("Unable to delete message");
   }
 }
 

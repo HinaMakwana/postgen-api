@@ -1,7 +1,8 @@
-const { getJson } = require('serpapi');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const fs = require('fs');
+const { getJson } = require("serpapi");
+const axios = require("axios");
+const cheerio = require("cheerio");
+const fs = require("fs");
+const { catchError } = require("../../utils/catchError");
 
 /**
  * Fetch news using SerpAPI.
@@ -13,46 +14,47 @@ const fs = require('fs');
  * @returns {Promise<Array>} - Array of news articles with metadata.
  */
 async function getNews({
-	search = '',
-	lang = 'en',
-	max = '10',
-	country = '',
-	engine = '',
+  search = "",
+  lang = "en",
+  max = "10",
+  country = "",
+  engine = "",
 }) {
-	try {
-		let params = {
-			q: search,
-			tbm: 'nws',
-			max: 2,
-			api_key: process.env.SERPE_API_SECRET_KEY,
-		};
+  try {
+    let params = {
+      q: search,
+      tbm: "nws",
+      max: 2,
+      api_key: process.env.SERPE_API_SECRET_KEY,
+    };
 
-		if (engine) {
-			params.engine = engine;
-		} else {
-			params.engine = 'google';
-		}
+    if (engine) {
+      params.engine = engine;
+    } else {
+      params.engine = "google";
+    }
 
-		let data = await getJson(
-			params,
-			(json) =>
-				json[params.engine == 'google' ? 'news_results' : 'organic_results']
-		);
+    let data = await getJson(
+      params,
+      (json) =>
+        json[params.engine == "google" ? "news_results" : "organic_results"]
+    );
 
-		let searchResults;
-		if (params.engine == 'google') {
-			searchResults = data.news_results;
-		} else {
-			searchResults = data.organic_results;
-		}
-		// Fetch and save articles using Promise.allSettled for parallel processing
-		let response = await fetchAndSaveArticles(searchResults);
+    let searchResults;
+    if (params.engine == "google") {
+      searchResults = data.news_results;
+    } else {
+      searchResults = data.organic_results;
+    }
+    // Fetch and save articles using Promise.allSettled for parallel processing
+    let response = await fetchAndSaveArticles(searchResults);
 
-		return response;
-	} catch (error) {
-		console.error('Error fetching news:', error.message);
-		throw error;
-	}
+    return response;
+  } catch (error) {
+    console.error("Error fetching news:", error.message);
+    await catchError(error);
+    throw error;
+  }
 }
 
 /**
@@ -61,36 +63,37 @@ async function getNews({
  * @returns {Promise<{url: string, title: string, content: string}>} - Article data.
  */
 async function fetchArticleContent(url) {
-	try {
-		const response = await axios.get(url);
-		const html = response.data;
-		// console.log(html);
-		const $ = cheerio.load(html);
-		const title = $('h1').text() || $('title').text() || 'No Title Found';
-		const paragraphs = $('p');
-		const scripts = $('script');
-		let content = paragraphs
-			.map((_, el) => $(el).text())
-			.get()
-			.join(' ');
+  try {
+    const response = await axios.get(url);
+    const html = response.data;
+    // console.log(html);
+    const $ = cheerio.load(html);
+    const title = $("h1").text() || $("title").text() || "No Title Found";
+    const paragraphs = $("p");
+    const scripts = $("script");
+    let content = paragraphs
+      .map((_, el) => $(el).text())
+      .get()
+      .join(" ");
 
-		// content =
-		// 	content +
-		// 	scripts
-		// 		.map((_, el) => $(el).text())
-		// 		.get()
-		// 		.join(' ');
-		// console.log(content);
+    // content =
+    // 	content +
+    // 	scripts
+    // 		.map((_, el) => $(el).text())
+    // 		.get()
+    // 		.join(' ');
+    // console.log(content);
 
-		return { url, title, content };
-	} catch (error) {
-		console.error(`Error fetching article from ${url}:`, error.message);
-		return {
-			url,
-			title: 'Error fetching title',
-			content: 'Error fetching content',
-		};
-	}
+    return { url, title, content };
+  } catch (error) {
+    console.error(`Error fetching article from ${url}:`, error.message);
+    await catchError(error);
+    return {
+      url,
+      title: "Error fetching title",
+      content: "Error fetching content",
+    };
+  }
 }
 
 /**
@@ -98,33 +101,33 @@ async function fetchArticleContent(url) {
  * @param {Array} articles - Array of articles with metadata from SerpAPI.
  */
 async function fetchAndSaveArticles(articles) {
-	// Use Promise.allSettled for parallel processing of articles
-	const fetchPromises = articles
-		.filter((_, i) => i < 1)
-		.map((article) => {
-			const { link } = article;
-			return fetchArticleContent(link)
-				.then((data) => data)
-				.catch((error) => ({
-					status: 'rejected',
-					reason: error.message,
-				}));
-		});
+  // Use Promise.allSettled for parallel processing of articles
+  const fetchPromises = articles
+    .filter((_, i) => i < 1)
+    .map((article) => {
+      const { link } = article;
+      return fetchArticleContent(link)
+        .then((data) => data)
+        .catch((error) => ({
+          status: "rejected",
+          reason: error.message,
+        }));
+    });
 
-	// Wait for all fetch operations to settle (both fulfilled and rejected)
-	let results = await Promise.allSettled(fetchPromises);
+  // Wait for all fetch operations to settle (both fulfilled and rejected)
+  let results = await Promise.allSettled(fetchPromises);
 
-	// Handle the settled results
-	const successfulResults = results
-		.filter((result) => result.status === 'fulfilled')
-		.map((result) => result.value);
-	const failedResults = results
-		.filter((result) => result.status === 'rejected')
-		.map((result) => result.reason);
+  // Handle the settled results
+  const successfulResults = results
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
+  const failedResults = results
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason);
 
-	// Optionally, save the successful results to a file
+  // Optionally, save the successful results to a file
 
-	return successfulResults;
+  return successfulResults;
 }
 
 /**
